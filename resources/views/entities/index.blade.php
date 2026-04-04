@@ -9,34 +9,63 @@
                 <x-ui.input name="name" label="Name" />
                 <x-ui.input name="code" label="Code" />
                 <x-ui.input name="email" label="Email" type="email" />
-                <x-ui.input name="currency" label="Currency" value="IDR" />
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <x-ui.input name="currency" label="Currency" value="IDR" />
+                    <x-ui.input name="invoice_prefix" label="Invoice Prefix" />
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <x-ui.input name="default_payment_terms" label="Payment Terms" type="number" value="30" />
+                    <x-ui.input name="reminder_days" label="Reminder Days" value="1,3,7" />
+                </div>
                 <x-ui.button type="submit">Create</x-ui.button>
             </form>
         </x-ui.card>
 
-        <x-ui.card class="lg:col-span-2">
-            <x-ui.table>
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-3 py-2 text-left">Name</th>
-                        <th class="px-3 py-2 text-left">Code</th>
-                        <th class="px-3 py-2 text-left">Currency</th>
-                        <th class="px-3 py-2 text-left">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @foreach($entities as $entity)
-                        <tr>
-                            <td class="px-3 py-2">{{ $entity->name }}</td>
-                            <td class="px-3 py-2">{{ $entity->code }}</td>
-                            <td class="px-3 py-2">{{ $entity->currency }}</td>
-                            <td class="px-3 py-2"><x-ui.badge :status="$entity->is_active ? 'paid' : 'cancelled'">{{ $entity->is_active ? 'active' : 'inactive' }}</x-ui.badge></td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </x-ui.table>
+        <div class="space-y-4 lg:col-span-2">
+            @foreach($entities as $entity)
+                <x-ui.card>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-sm font-semibold">{{ $entity->name }}</h3>
+                                <p class="text-xs text-slate-500">{{ $entity->code }}</p>
+                            </div>
+                            <x-ui.badge :status="$entity->is_active ? 'paid' : 'cancelled'">{{ $entity->is_active ? 'active' : 'inactive' }}</x-ui.badge>
+                        </div>
 
-            <div class="mt-3">{{ $entities->links() }}</div>
-        </x-ui.card>
+                        <form method="POST" action="{{ route('entities.update', $entity) }}" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+                            <div class="grid gap-3 md:grid-cols-2">
+                                <x-ui.input name="name" label="Name" :value="$entity->name" />
+                                <x-ui.input name="email" label="Email" type="email" :value="$entity->email" />
+                                <x-ui.input name="currency" label="Currency" :value="$entity->currency" />
+                                <x-ui.input name="invoice_prefix" label="Invoice Prefix" :value="$entity->invoice_prefix" />
+                                <x-ui.input name="default_payment_terms" label="Payment Terms" type="number" :value="$entity->default_payment_terms" />
+                                <x-ui.input name="reminder_days" label="Reminder Days" :value="implode(',', $entity->reminder_days ?? [])" />
+                            </div>
+
+                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                <input type="hidden" name="is_active" value="0">
+                                <input type="checkbox" name="is_active" value="1" class="rounded border-slate-300 text-slate-900 focus:ring-slate-500" @checked($entity->is_active)>
+                                Active entity
+                            </label>
+
+                            <div class="flex gap-2">
+                                <x-ui.button type="submit">Save</x-ui.button>
+                            </div>
+                        </form>
+
+                        <form method="POST" action="{{ route('entities.destroy', $entity) }}">
+                            @csrf
+                            @method('DELETE')
+                            <x-ui.button type="submit" variant="danger">Deactivate</x-ui.button>
+                        </form>
+                    </div>
+                </x-ui.card>
+            @endforeach
+
+            <div>{{ $entities->links() }}</div>
+        </div>
     </div>
 </x-app-layout>

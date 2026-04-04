@@ -8,10 +8,15 @@
                     <h3 class="text-lg font-semibold">{{ $payment->payment_number }}</h3>
                     <p class="text-sm text-slate-500">{{ $payment->customer?->name ?? '-' }} - {{ $payment->paymentMethod?->name ?? '-' }}</p>
                 </div>
-                <form method="POST" action="{{ route('payments.confirm', $payment) }}">
-                    @csrf
-                    <x-ui.button type="submit">Confirm Payment</x-ui.button>
-                </form>
+                <div class="flex gap-2">
+                    @if($payment->proof_path)
+                        <a href="{{ route('payments.proof', $payment) }}" class="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-900">Download Proof</a>
+                    @endif
+                    <form method="POST" action="{{ route('payments.confirm', $payment) }}">
+                        @csrf
+                        <x-ui.button type="submit">Confirm Payment</x-ui.button>
+                    </form>
+                </div>
             </div>
 
             <div class="mt-6 grid gap-4 md:grid-cols-2">

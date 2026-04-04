@@ -13,6 +13,7 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('invoices.pdf', $invoice) }}" class="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-900">Download PDF</a>
                     <form method="POST" action="{{ route('invoices.send', $invoice) }}">
                         @csrf
                         <x-ui.button type="submit">Send</x-ui.button>
@@ -106,7 +107,10 @@
 
             <x-ui.card>
                 <h4 class="mb-3 text-sm font-semibold">Public View</h4>
-                <a class="text-sm text-slate-900 underline" href="{{ route('invoices.public.show', ['token' => $invoice->public_token]) }}" target="_blank">Open public invoice page</a>
+                <div class="space-y-2 text-sm">
+                    <a class="block text-slate-900 underline" href="{{ route('invoices.public.show', ['token' => $invoice->public_token]) }}" target="_blank">Open public invoice page</a>
+                    <a class="block text-slate-900 underline" href="{{ route('invoices.public.download', ['token' => $invoice->public_token]) }}" target="_blank">Download public PDF</a>
+                </div>
             </x-ui.card>
         </div>
     </div>

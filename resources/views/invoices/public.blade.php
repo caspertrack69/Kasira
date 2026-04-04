@@ -84,6 +84,7 @@
                 </div>
 
                 <div class="mt-6 flex flex-wrap gap-3">
+                    <a href="{{ route('invoices.public.download', ['token' => $invoice->public_token]) }}" class="rounded-md bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-900">Download PDF</a>
                     <button onclick="window.print()" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white">Print</button>
                 </div>
             </div>

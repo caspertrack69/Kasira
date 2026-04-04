@@ -3,9 +3,12 @@
 namespace App\Services\Billing;
 
 use App\Enums\InvoiceStatus;
+use App\Jobs\GenerateInvoicePdfJob;
+use App\Jobs\SendInvoiceEmailJob;
 use App\Models\Entity;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\InvoiceStatusHistory;
 use App\Models\RecurringTemplate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -58,17 +61,20 @@ class RecurringInvoiceService
     {
         $payload = $template->template_data;
         $entity = Entity::query()->findOrFail($template->entity_id);
+        $invoiceId = null;
+        $invoiceStatus = InvoiceStatus::Draft;
 
-        DB::transaction(function () use ($template, $payload, $entity): void {
+        DB::transaction(function () use ($template, $payload, $entity, &$invoiceId, &$invoiceStatus): void {
             $invoiceDate = now()->toDateString();
             $number = $this->numberService->generate($entity, now());
+            $invoiceStatus = $template->auto_send ? InvoiceStatus::Sent : InvoiceStatus::Draft;
 
             $invoice = Invoice::query()->create([
                 'entity_id' => $template->entity_id,
                 'customer_id' => $template->customer_id,
                 'recurring_template_id' => $template->getKey(),
                 'invoice_number' => $number,
-                'status' => ($template->auto_send ? InvoiceStatus::Sent : InvoiceStatus::Draft)->value,
+                'status' => $invoiceStatus->value,
                 'invoice_date' => $invoiceDate,
                 'due_date' => $payload['due_date'] ?? now()->addDays((int) ($entity->default_payment_terms ?? 30))->toDateString(),
                 'subtotal' => $payload['subtotal'] ?? 0,
@@ -103,12 +109,34 @@ class RecurringInvoiceService
                 ]);
             }
 
+            InvoiceStatusHistory::query()->create([
+                'entity_id' => $invoice->entity_id,
+                'invoice_id' => $invoice->getKey(),
+                'to_status' => $invoiceStatus->value,
+                'changed_by' => $template->created_by,
+                'notes' => $template->auto_send
+                    ? 'Invoice generated and automatically sent from recurring template'
+                    : 'Invoice generated as draft from recurring template',
+            ]);
+
             $template->update([
                 'occurrences_count' => $template->occurrences_count + 1,
                 'next_generate_date' => $this->nextDate($template),
                 'is_active' => $this->shouldRemainActive($template),
             ]);
+
+            $invoiceId = $invoice->getKey();
         });
+
+        if (! $invoiceId) {
+            return;
+        }
+
+        GenerateInvoicePdfJob::dispatch($invoiceId);
+
+        if ($invoiceStatus === InvoiceStatus::Sent) {
+            SendInvoiceEmailJob::dispatch($invoiceId);
+        }
     }
 
     private function nextDate(RecurringTemplate $template): string

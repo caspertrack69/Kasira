@@ -44,6 +44,8 @@ class PaymentConfirmationService
             'entity_id' => $payment->entity_id,
             'notifiable_type' => $payment->customer::class,
             'notifiable_id' => $payment->customer->getKey(),
+            'subject_type' => $payment::class,
+            'subject_id' => $payment->getKey(),
             'channel' => 'email',
             'event_type' => 'payment_received',
             'recipient' => $payment->customer->email,

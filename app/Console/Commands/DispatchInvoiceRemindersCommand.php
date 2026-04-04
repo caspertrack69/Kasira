@@ -15,12 +15,31 @@ class DispatchInvoiceRemindersCommand extends Command
 
     public function handle(): int
     {
+        $today = now()->startOfDay();
+
         $invoices = Invoice::query()
             ->withoutGlobalScopes()
+            ->with('entity')
             ->where('status', InvoiceStatus::Overdue->value)
             ->whereNotNull('due_date')
-            ->whereDate('due_date', '<=', now()->subDays(1)->toDateString())
-            ->get();
+            ->get()
+            ->filter(function (Invoice $invoice) use ($today): bool {
+                $reminderDays = collect($invoice->entity?->reminder_days ?? [1, 3, 7])
+                    ->filter(fn ($day) => is_numeric($day))
+                    ->map(fn ($day) => (int) $day)
+                    ->unique()
+                    ->values();
+
+                if ($reminderDays->isEmpty()) {
+                    return false;
+                }
+
+                $daysOverdue = $invoice->due_date?->startOfDay()->diffInDays($today, false);
+
+                return $daysOverdue !== null
+                    && $daysOverdue > 0
+                    && $reminderDays->contains((int) floor($daysOverdue));
+            });
 
         foreach ($invoices as $invoice) {
             SendOverdueReminderJob::dispatch($invoice->getKey());

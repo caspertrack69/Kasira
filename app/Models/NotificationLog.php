@@ -15,6 +15,8 @@ class NotificationLog extends Model
         'entity_id',
         'notifiable_type',
         'notifiable_id',
+        'subject_type',
+        'subject_id',
         'channel',
         'event_type',
         'recipient',

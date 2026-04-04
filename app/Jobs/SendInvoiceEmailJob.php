@@ -30,6 +30,8 @@ class SendInvoiceEmailJob implements ShouldQueue
             'entity_id' => $invoice->entity_id,
             'notifiable_type' => $invoice->customer::class,
             'notifiable_id' => $invoice->customer->getKey(),
+            'subject_type' => $invoice::class,
+            'subject_id' => $invoice->getKey(),
             'channel' => 'email',
             'event_type' => 'invoice_sent',
             'recipient' => $invoice->customer->email,

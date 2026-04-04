@@ -28,12 +28,16 @@ class EntityController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'currency' => ['nullable', 'string', 'size:3'],
             'invoice_prefix' => ['nullable', 'string', 'max:12'],
+            'default_payment_terms' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'reminder_days' => ['nullable', 'string', 'max:50'],
         ]);
 
         Entity::query()->create([
             ...$validated,
             'currency' => strtoupper($validated['currency'] ?? 'IDR'),
             'invoice_prefix' => strtoupper($validated['invoice_prefix'] ?? strtoupper($validated['code'])),
+            'default_payment_terms' => (int) ($validated['default_payment_terms'] ?? 30),
+            'reminder_days' => $this->parseReminderDays($validated['reminder_days'] ?? null),
         ]);
 
         return back()->with('status', 'Entity created.');
@@ -49,6 +53,7 @@ class EntityController extends Controller
             'currency' => ['nullable', 'string', 'size:3'],
             'invoice_prefix' => ['nullable', 'string', 'max:12'],
             'default_payment_terms' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'reminder_days' => ['nullable', 'string', 'max:50'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -56,6 +61,8 @@ class EntityController extends Controller
             ...$validated,
             'currency' => strtoupper($validated['currency'] ?? $entity->currency),
             'invoice_prefix' => strtoupper($validated['invoice_prefix'] ?? $entity->invoice_prefix),
+            'default_payment_terms' => (int) ($validated['default_payment_terms'] ?? $entity->default_payment_terms),
+            'reminder_days' => $this->parseReminderDays($validated['reminder_days'] ?? implode(',', $entity->reminder_days ?? [])),
             'is_active' => (bool) ($validated['is_active'] ?? $entity->is_active),
         ]);
 
@@ -69,5 +76,17 @@ class EntityController extends Controller
         $entity->update(['is_active' => false]);
 
         return back()->with('status', 'Entity deactivated.');
+    }
+
+    private function parseReminderDays(?string $value): array
+    {
+        return collect(explode(',', (string) $value))
+            ->map(fn (string $day): string => trim($day))
+            ->filter(fn (string $day): bool => $day !== '' && is_numeric($day) && (int) $day > 0)
+            ->map(fn (string $day): int => (int) $day)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 }

@@ -17,7 +17,8 @@
         <div class="page">
             <div class="panel">
                 <h1 style="margin:0 0 4px; font-size:20px;">Financial Summary</h1>
-                <p style="margin:0; color:#64748b;">Period {{ $from }} to {{ $to }}</p>
+                <p style="margin:0; color:#64748b;">Scope {{ $entityName ?? 'All Entities' }}</p>
+                <p style="margin:4px 0 0; color:#64748b;">Period {{ $from }} to {{ $to }}</p>
             </div>
 
             <div class="grid">

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Entity;
 use App\Services\Report\FinancialReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,14 +24,27 @@ class ExportReportPdfJob implements ShouldQueue
     public function handle(FinancialReportService $reportService): void
     {
         $summary = $reportService->summary($this->entityId, $this->from, $this->to);
+        $entityName = $this->entityId
+            ? Entity::query()->withoutGlobalScopes()->find($this->entityId)?->name
+            : 'All Entities';
 
         $pdf = Pdf::loadView('reports.pdf-summary', [
             'summary' => $summary,
             'from' => $this->from,
             'to' => $this->to,
+            'entityName' => $entityName,
         ]);
 
-        $file = sprintf('reports/%s_%s_%s.pdf', $this->requestedBy, $this->from, $this->to);
-        Storage::disk('private')->put($file, $pdf->output());
+        Storage::disk('private')->put(
+            self::filePathFor($this->requestedBy, $this->entityId, $this->from, $this->to),
+            $pdf->output(),
+        );
+    }
+
+    public static function filePathFor(int $requestedBy, ?string $entityId, string $from, string $to): string
+    {
+        $scopeKey = $entityId ?: 'all';
+
+        return sprintf('reports/%s/%s_%s_%s.pdf', $requestedBy, $scopeKey, $from, $to);
     }
 }

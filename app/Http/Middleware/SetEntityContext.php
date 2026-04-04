@@ -26,7 +26,7 @@ class SetEntityContext
         }
 
         if (! $entity && $request->session()->has('active_entity_id')) {
-            $entity = Entity::query()->find($request->session()->string('active_entity_id'));
+            $entity = Entity::query()->find((string) $request->session()->get('active_entity_id'));
         }
 
         if (! $entity) {
