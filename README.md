@@ -41,6 +41,27 @@ php artisan boost:install
 
 Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
+## Demo Seeding
+
+Kasira includes repeatable demo seeders for a fresh install. They create roles, permissions, two entities, demo users, and reference data for customers, taxes, items, and payment methods.
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+If the schema is already in place and you only want to refresh demo data, use:
+
+```bash
+php artisan db:seed
+```
+
+Demo accounts:
+
+- `superadmin@kasira.test` / `password`
+- `hq.admin@kasira.test` / `password`
+- `branch.finance@kasira.test` / `password`
+- `group.cfo@kasira.test` / `password`
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
