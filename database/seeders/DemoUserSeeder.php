@@ -19,9 +19,11 @@ class DemoUserSeeder extends Seeder
             name: 'Super Admin',
         );
 
-        $this->assignGlobalRole($superAdmin, 'super_admin');
-
         $entities = Entity::query()->orderBy('name')->get()->keyBy('code');
+
+        foreach ($entities as $entity) {
+            $this->assignEntityRole($superAdmin, $entity, 'super_admin', $superAdmin->getKey());
+        }
 
         $hq = $entities->get('KASIRA-HQ');
         $branch = $entities->get('KASIRA-BR1');
@@ -65,15 +67,6 @@ class DemoUserSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
         );
-    }
-
-    private function assignGlobalRole(User $user, string $roleName): void
-    {
-        if (function_exists('setPermissionsTeamId')) {
-            setPermissionsTeamId(null);
-        }
-
-        $user->syncRoles([$roleName]);
     }
 
     private function assignEntityRole(User $user, Entity $entity, string $roleName, int $assignedBy): void

@@ -12,69 +12,6 @@ use Spatie\Permission\Models\Role;
 
 class EntitySeeder extends Seeder
 {
-    private const ROLE_PERMISSIONS = [
-        'entity_admin' => [
-            'customers.view',
-            'customers.manage',
-            'taxes.view',
-            'taxes.manage',
-            'items.view',
-            'items.manage',
-            'payment-methods.view',
-            'payment-methods.manage',
-            'invoices.view',
-            'invoices.manage',
-            'invoices.send',
-            'invoices.void',
-            'payments.view',
-            'payments.manage',
-            'payments.confirm',
-            'credit-notes.view',
-            'credit-notes.manage',
-            'recurring.view',
-            'recurring.manage',
-            'reports.view',
-            'notifications.view',
-            'audit.view',
-        ],
-        'finance_manager' => [
-            'customers.view',
-            'customers.manage',
-            'taxes.view',
-            'taxes.manage',
-            'items.view',
-            'items.manage',
-            'payment-methods.view',
-            'payment-methods.manage',
-            'invoices.view',
-            'invoices.manage',
-            'invoices.send',
-            'invoices.void',
-            'payments.view',
-            'payments.manage',
-            'payments.confirm',
-            'credit-notes.view',
-            'credit-notes.manage',
-            'recurring.view',
-            'recurring.manage',
-            'reports.view',
-            'notifications.view',
-            'audit.view',
-        ],
-        'cashier' => [
-            'customers.view',
-            'taxes.view',
-            'items.view',
-            'payment-methods.view',
-            'invoices.view',
-            'payments.view',
-            'payments.manage',
-            'payments.confirm',
-            'reports.view',
-            'notifications.view',
-        ],
-    ];
-
     /**
      * Run the entity bootstrap and reference data.
      */
@@ -146,13 +83,112 @@ class EntitySeeder extends Seeder
         ];
     }
 
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function rolePermissions(): array
+    {
+        $allPermissions = [
+            'entities.manage',
+            'customers.view',
+            'customers.manage',
+            'taxes.view',
+            'taxes.manage',
+            'items.view',
+            'items.manage',
+            'payment-methods.view',
+            'payment-methods.manage',
+            'invoices.view',
+            'invoices.manage',
+            'invoices.send',
+            'invoices.void',
+            'payments.view',
+            'payments.manage',
+            'payments.confirm',
+            'credit-notes.view',
+            'credit-notes.manage',
+            'recurring.view',
+            'recurring.manage',
+            'reports.view',
+            'notifications.view',
+            'audit.view',
+            'settings.manage',
+        ];
+
+        return [
+            'super_admin' => $allPermissions,
+            'entity_admin' => [
+                'customers.view',
+                'customers.manage',
+                'taxes.view',
+                'taxes.manage',
+                'items.view',
+                'items.manage',
+                'payment-methods.view',
+                'payment-methods.manage',
+                'invoices.view',
+                'invoices.manage',
+                'invoices.send',
+                'invoices.void',
+                'payments.view',
+                'payments.manage',
+                'payments.confirm',
+                'credit-notes.view',
+                'credit-notes.manage',
+                'recurring.view',
+                'recurring.manage',
+                'reports.view',
+                'notifications.view',
+                'audit.view',
+                'settings.manage',
+            ],
+            'finance_manager' => [
+                'customers.view',
+                'customers.manage',
+                'taxes.view',
+                'taxes.manage',
+                'items.view',
+                'items.manage',
+                'payment-methods.view',
+                'payment-methods.manage',
+                'invoices.view',
+                'invoices.manage',
+                'invoices.send',
+                'invoices.void',
+                'payments.view',
+                'payments.manage',
+                'payments.confirm',
+                'credit-notes.view',
+                'credit-notes.manage',
+                'recurring.view',
+                'recurring.manage',
+                'reports.view',
+                'notifications.view',
+                'audit.view',
+                'settings.manage',
+            ],
+            'cashier' => [
+                'customers.view',
+                'taxes.view',
+                'items.view',
+                'payment-methods.view',
+                'invoices.view',
+                'payments.view',
+                'payments.manage',
+                'payments.confirm',
+                'reports.view',
+                'notifications.view',
+            ],
+        ];
+    }
+
     private function seedRoles(Entity $entity): void
     {
         if (function_exists('setPermissionsTeamId')) {
             setPermissionsTeamId($entity->getKey());
         }
 
-        foreach (self::ROLE_PERMISSIONS as $roleName => $permissions) {
+        foreach ($this->rolePermissions() as $roleName => $permissions) {
             $role = Role::query()->updateOrCreate(
                 [
                     'name' => $roleName,

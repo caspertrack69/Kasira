@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
@@ -22,11 +21,6 @@ class PermissionSeeder extends Seeder
                 [],
             );
         }
-
-        Role::query()->updateOrCreate(
-            ['name' => 'super_admin', 'guard_name' => 'web', 'entity_id' => null],
-            [],
-        );
     }
 
     /**
