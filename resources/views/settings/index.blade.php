@@ -1,5 +1,12 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="text-xl font-semibold">System Settings</h2></x-slot>
+    <x-slot name="header">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200/60">
+                <i class="ph ph-gear text-xl text-slate-600"></i>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight text-slate-900">System Settings</h2>
+        </div>
+    </x-slot>
 
     @php
         $settingRows = old('settings', $settings->map(fn ($setting) => [
@@ -24,60 +31,64 @@
     @endphp
 
     <div class="space-y-6">
-        <x-ui.card>
+        <x-ui.card class="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm">
             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <h3 class="text-sm font-semibold">Gateway Secrets</h3>
-                    <p class="mt-1 max-w-2xl text-sm text-slate-500">
-                        Payment gateway and mail secrets stay in <code>.env</code> as required by the PRD. The status cards below report whether each required environment variable exists.
+                    <h3 class="text-base font-bold tracking-tight text-slate-900">Gateway Secrets</h3>
+                    <p class="mt-1.5 max-w-2xl text-sm font-medium text-slate-500">
+                        Payment gateway and mail secrets stay in <code class="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700">.env</code> as required by the PRD. The status cards below report whether each required environment variable exists.
                     </p>
                 </div>
             </div>
 
-            <p class="mt-3 text-xs text-slate-500">
+            <p class="mt-4 text-xs font-medium text-slate-400">
                 Protected keys must remain environment-backed. The table and cards below only show env presence, never the actual secret.
             </p>
 
-            <div class="mt-3 flex flex-wrap gap-2 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500">
+            <div class="mt-4 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 @foreach($protectedSettingKeys as $key)
-                    <span class="rounded-full border border-slate-200 bg-white/80 px-2 py-1">{{ $key }}</span>
+                    <span class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5">{{ $key }}</span>
                 @endforeach
             </div>
 
-            <div class="mt-6 grid gap-4 lg:grid-cols-2">
+            <div class="mt-8 grid gap-5 lg:grid-cols-2">
                 @foreach($gatewayStatuses as $gateway)
                     @php
                         $missingCount = collect($gateway['items'])
                             ->filter(fn (array $item): bool => ! $item['configured'])
                             ->count();
                     @endphp
-                    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div class="flex items-start justify-between gap-3">
+                    <article class="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm transition hover:shadow-md">
+                        <div class="flex items-start justify-between gap-4">
                             <div>
-                                <h4 class="text-base font-semibold text-slate-900">{{ $gateway['label'] }}</h4>
-                                <p class="mt-1 text-sm text-slate-500">{{ $gateway['summary'] }}</p>
+                                <h4 class="text-base font-bold tracking-tight text-slate-900">{{ $gateway['label'] }}</h4>
+                                <p class="mt-1 text-xs font-medium text-slate-500">{{ $gateway['summary'] }}</p>
                             </div>
-                            <x-ui.badge :status="$gateway['ready'] ? 'paid' : 'overdue'">
+                            <x-ui.badge :status="$gateway['ready'] ? 'paid' : 'overdue'" class="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-semibold">
                                 {{ $gateway['ready'] ? 'Ready' : 'Missing env' }}
                             </x-ui.badge>
                         </div>
 
-                        <div class="mt-4 flex flex-wrap items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500">
-                            <span class="rounded-full border border-slate-200 px-3 py-1">{{ $gateway['mode'] }}</span>
-                            <span class="{{ $missingCount === 0 ? 'rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1' : 'rounded-full border border-amber-200 bg-amber-50 text-amber-700 px-3 py-1' }}">
+                        <div class="mt-5 flex flex-wrap items-center gap-2.5 text-[10px] font-bold uppercase tracking-wider">
+                            <span class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-slate-600">{{ $gateway['mode'] }}</span>
+                            <span class="{{ $missingCount === 0 ? 'rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 px-2.5 py-1.5' : 'rounded-lg border border-amber-200 bg-amber-50 text-amber-700 px-2.5 py-1.5' }}">
                                 {{ $missingCount === 0 ? 'All required keys present' : $missingCount.' missing' }}
                             </span>
                         </div>
 
-                        <div class="mt-4 space-y-3">
+                        <div class="mt-5 space-y-2.5">
                             @foreach($gateway['items'] as $item)
-                                <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                                <div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3 transition hover:bg-slate-50">
                                     <div>
-                                        <p class="text-sm font-semibold text-slate-800">{{ $item['label'] }}</p>
-                                        <p class="font-mono text-[0.65rem] uppercase tracking-wider text-slate-500">{{ $item['env'] }}</p>
+                                        <p class="text-[13px] font-bold text-slate-900">{{ $item['label'] }}</p>
+                                        <p class="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-500">{{ $item['env'] }}</p>
                                     </div>
-                                    <span class="text-sm font-semibold {{ $item['configured'] ? 'text-emerald-600' : 'text-amber-600' }}">
-                                        {{ $item['configured'] ? 'Configured' : 'Missing' }}
+                                    <span class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider {{ $item['configured'] ? 'text-emerald-600' : 'text-amber-600' }}">
+                                        @if($item['configured'])
+                                            <i class="ph ph-check-circle text-sm"></i> Configured
+                                        @else
+                                            <i class="ph ph-warning-circle text-sm"></i> Missing
+                                        @endif
                                     </span>
                                 </div>
                             @endforeach
@@ -87,72 +98,92 @@
             </div>
 
             @if($missingGatewayItems->isNotEmpty())
-                <div class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    <p class="text-sm font-semibold">Action required</p>
-                    <p class="mt-1 text-xs text-amber-700">Define these environment variables in <code>.env</code> so gateway integrations can initialize safely.</p>
-                    <ul class="mt-3 space-y-2">
+                <div class="mt-8 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                            <i class="ph ph-warning text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-amber-900">Action required</p>
+                            <p class="text-xs font-medium text-amber-700">Define these environment variables in <code class="rounded bg-amber-100 px-1 py-0.5">.env</code> so gateway integrations can initialize safely.</p>
+                        </div>
+                    </div>
+                    <ul class="mt-5 space-y-2.5">
                         @foreach($missingGatewayItems as $item)
-                            <li class="flex items-center justify-between rounded-lg border border-amber-100 bg-white/80 px-4 py-3">
+                            <li class="flex items-center justify-between rounded-xl border border-amber-200/60 bg-white px-5 py-3 shadow-sm">
                                 <div>
-                                    <p class="font-semibold text-amber-900">{{ $item['gateway'] }} · {{ $item['label'] }}</p>
-                                    <p class="font-mono text-[0.65rem] uppercase tracking-wider text-amber-700">{{ $item['env'] }}</p>
+                                    <p class="text-[13px] font-bold text-amber-900">{{ $item['gateway'] }} <span class="text-amber-400">&bull;</span> {{ $item['label'] }}</p>
+                                    <p class="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-600">{{ $item['env'] }}</p>
                                 </div>
-                                <span class="text-xs font-semibold uppercase tracking-wider text-amber-600">Missing</span>
+                                <span class="rounded-lg bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">Missing</span>
                             </li>
                         @endforeach
                     </ul>
                 </div>
             @else
-                <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900">
-                    <p class="text-sm font-semibold">All critical gateway secrets are configured.</p>
-                    <p class="mt-1 text-xs text-emerald-700">Keep these variables protected inside <code>.env</code>.</p>
+                <div class="mt-8 flex items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                        <i class="ph ph-check-circle text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-emerald-900">All critical gateway secrets are configured.</p>
+                        <p class="text-xs font-medium text-emerald-700">Keep these variables protected inside <code class="rounded bg-emerald-100 px-1 py-0.5">.env</code>.</p>
+                    </div>
                 </div>
             @endif
         </x-ui.card>
 
-        <x-ui.card>
-            <form method="POST" action="{{ route('settings.update') }}" x-data="settingsRows(@js($settingRows))" x-cloak class="space-y-4">
+        <x-ui.card class="rounded-2xl border border-slate-200/60 bg-white p-0 shadow-sm">
+            <form method="POST" action="{{ route('settings.update') }}" x-data="settingsRows(@js($settingRows))" x-cloak class="flex flex-col">
                 @csrf
                 @method('PUT')
 
-                <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-6">
                     <div>
-                        <h3 class="text-sm font-semibold">Application Settings</h3>
-                        <p class="text-xs text-slate-500">Use this table for non-sensitive settings only. Protected keys are rejected and must remain environment-backed.</p>
+                        <h3 class="text-base font-bold tracking-tight text-slate-900">Application Settings</h3>
+                        <p class="mt-1 text-xs font-medium text-slate-500">Use this table for non-sensitive settings only. Protected keys are rejected and must remain environment-backed.</p>
                     </div>
-                    <x-ui.button type="button" variant="secondary" @click="addRow()">Add Row</x-ui.button>
+                    <x-ui.button type="button" variant="secondary" @click="addRow()" class="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm">
+                        <i class="ph ph-plus mr-1.5"></i> Add Row
+                    </x-ui.button>
                 </div>
 
-                <x-ui.table>
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 text-left">Group</th>
-                            <th class="px-3 py-2 text-left">Key</th>
-                            <th class="px-3 py-2 text-left">Value</th>
-                            <th class="px-3 py-2 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <template x-for="(row, index) in rows" :key="index">
+                <div class="overflow-x-auto p-6 pt-0">
+                    <x-ui.table class="mt-6 w-full text-sm">
+                        <thead class="border-b border-slate-100 bg-slate-50/50">
                             <tr>
-                                <td class="px-3 py-2">
-                                    <input :name="'settings[' + index + '][group]'" x-model="row.group" type="text" class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-                                </td>
-                                <td class="px-3 py-2">
-                                    <input :name="'settings[' + index + '][key]'" x-model="row.key" type="text" class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-                                </td>
-                                <td class="px-3 py-2">
-                                    <input :name="'settings[' + index + '][value]'" x-model="row.value" type="text" class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500">
-                                </td>
-                                <td class="px-3 py-2 text-right">
-                                    <button type="button" class="text-sm font-medium text-red-600" @click="removeRow(index)" x-show="rows.length > 1">Remove</button>
-                                </td>
+                                <th class="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Group</th>
+                                <th class="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Key</th>
+                                <th class="px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Value</th>
+                                <th class="px-4 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Action</th>
                             </tr>
-                        </template>
-                    </tbody>
-                </x-ui.table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100/80 bg-white">
+                            <template x-for="(row, index) in rows" :key="index">
+                                <tr class="transition-colors hover:bg-slate-50/50">
+                                    <td class="p-3">
+                                        <input :name="'settings[' + index + '][group]'" x-model="row.group" type="text" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                                    </td>
+                                    <td class="p-3">
+                                        <input :name="'settings[' + index + '][key]'" x-model="row.key" type="text" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                                    </td>
+                                    <td class="p-3">
+                                        <input :name="'settings[' + index + '][value]'" x-model="row.value" type="text" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                                    </td>
+                                    <td class="p-3 text-right">
+                                        <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-rose-500 transition hover:bg-rose-50 hover:text-rose-600" @click="removeRow(index)" x-show="rows.length > 1" title="Remove row">
+                                            <i class="ph ph-trash text-lg"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </x-ui.table>
+                </div>
 
-                <x-ui.button type="submit">Save Settings</x-ui.button>
+                <div class="border-t border-slate-100 bg-slate-50/30 p-6">
+                    <x-ui.button type="submit" class="rounded-xl px-6 py-2.5 font-semibold">Save Settings</x-ui.button>
+                </div>
             </form>
         </x-ui.card>
     </div>

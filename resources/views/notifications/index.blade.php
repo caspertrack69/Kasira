@@ -1,37 +1,77 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="text-xl font-semibold">Notification Logs</h2></x-slot>
+    <x-slot name="header">
+        <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200/60">
+                <i class="ph ph-bell text-xl text-slate-600"></i>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight text-slate-900">Notification Logs</h2>
+        </div>
+    </x-slot>
 
-    <x-ui.card>
-        <x-ui.table>
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-3 py-2 text-left">Event</th>
-                    <th class="px-3 py-2 text-left">Recipient</th>
-                    <th class="px-3 py-2 text-left">Channel</th>
-                    <th class="px-3 py-2 text-left">Status</th>
-                    <th class="px-3 py-2 text-right">Sent</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-                @forelse($logs as $log)
-                    <tr>
-                        <td class="px-3 py-2">
-                            <p class="font-medium">{{ $log->event_type }}</p>
-                            <p class="text-xs text-slate-500">{{ $log->entity_id }}</p>
-                        </td>
-                        <td class="px-3 py-2">{{ $log->recipient }}</td>
-                        <td class="px-3 py-2">{{ $log->channel }}</td>
-                        <td class="px-3 py-2"><x-ui.badge :status="$log->status">{{ $log->status }}</x-ui.badge></td>
-                        <td class="px-3 py-2 text-right">{{ $log->sent_at?->format('Y-m-d H:i') ?? $log->created_at?->format('Y-m-d H:i') }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-3 py-6 text-center text-slate-500">No notification logs available.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </x-ui.table>
+    <x-ui.card class="overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-0 shadow-sm">
+        <div class="border-b border-slate-100 p-6">
+            <h3 class="text-base font-bold tracking-tight text-slate-900">Notification History</h3>
+        </div>
 
-        <div class="mt-4">{{ $logs->links() }}</div>
+        <div class="overflow-x-auto">
+            <x-ui.table class="w-full text-sm">
+                <thead class="border-b border-slate-100 bg-slate-50/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Event</th>
+                        <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Recipient</th>
+                        <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Channel</th>
+                        <th class="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+                        <th class="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Sent</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100/80 bg-white">
+                    @forelse($logs as $log)
+                        <tr class="transition-colors hover:bg-slate-50/50">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-600 ring-1 ring-slate-500/20">
+                                        <i class="ph ph-envelope-simple text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-900">{{ $log->event_type }}</p>
+                                        <p class="font-mono text-[10px] uppercase tracking-wider text-slate-500">{{ $log->entity_id }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 font-medium text-slate-700">
+                                {{ $log->recipient }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                                    {{ $log->channel }}
+                                </span>
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4">
+                                <x-ui.badge :status="$log->status" class="rounded-lg px-2.5 py-1 text-[11px] font-semibold">{{ $log->status }}</x-ui.badge>
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-right">
+                                <p class="font-bold text-slate-900">{{ $log->sent_at?->format('d M Y') ?? $log->created_at?->format('d M Y') }}</p>
+                                <p class="mt-0.5 text-[11px] font-medium text-slate-500">{{ $log->sent_at?->format('H:i') ?? $log->created_at?->format('H:i') }}</p>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center justify-center text-slate-400">
+                                    <i class="ph ph-bell-slash mb-3 text-4xl text-slate-300"></i>
+                                    <p class="text-sm font-medium text-slate-500">No notification logs available.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </x-ui.table>
+        </div>
+
+        @if($logs->hasPages())
+            <div class="border-t border-slate-100 bg-slate-50/30 px-6 py-4">
+                {{ $logs->links() }}
+            </div>
+        @endif
     </x-ui.card>
 </x-app-layout>
