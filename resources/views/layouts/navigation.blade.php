@@ -1,3 +1,23 @@
+@php
+    $navItems = [
+        ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'ph ph-gauge'],
+        ['route' => 'entities.*', 'indexRoute' => 'entities.index', 'label' => 'Entities', 'icon' => 'ph ph-buildings'],
+        ['route' => 'users.*', 'indexRoute' => 'users.index', 'label' => 'Users', 'icon' => 'ph ph-users-three'],
+        ['route' => 'customers.*', 'indexRoute' => 'customers.index', 'label' => 'Customers', 'icon' => 'ph ph-user-list'],
+        ['route' => 'items.*', 'indexRoute' => 'items.index', 'label' => 'Items', 'icon' => 'ph ph-package'],
+        ['route' => 'taxes.*', 'indexRoute' => 'taxes.index', 'label' => 'Taxes', 'icon' => 'ph ph-percent'],
+        ['route' => 'payment-methods.*', 'indexRoute' => 'payment-methods.index', 'label' => 'Payment Methods', 'icon' => 'ph ph-credit-card'],
+        ['route' => 'invoices.*', 'indexRoute' => 'invoices.index', 'label' => 'Invoices', 'icon' => 'ph ph-file-text'],
+        ['route' => 'payments.*', 'indexRoute' => 'payments.index', 'label' => 'Payments', 'icon' => 'ph ph-hand-coins'],
+        ['route' => 'credit-notes.*', 'indexRoute' => 'credit-notes.index', 'label' => 'Credit Notes', 'icon' => 'ph ph-receipt'],
+        ['route' => 'recurring-templates.*', 'indexRoute' => 'recurring-templates.index', 'label' => 'Recurring', 'icon' => 'ph ph-arrows-clockwise'],
+        ['route' => 'reports.*', 'indexRoute' => 'reports.index', 'label' => 'Reports', 'icon' => 'ph ph-chart-line-up'],
+        ['route' => 'notification-logs.*', 'indexRoute' => 'notification-logs.index', 'label' => 'Notifications', 'icon' => 'ph ph-bell'],
+        ['route' => 'audit-logs.*', 'indexRoute' => 'audit-logs.index', 'label' => 'Audit Logs', 'icon' => 'ph ph-shield-check'],
+        ['route' => 'settings.*', 'indexRoute' => 'settings.index', 'label' => 'Settings', 'icon' => 'ph ph-gear'],
+    ];
+@endphp
+
 <nav x-data="{ open: false }" class="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-200 bg-white lg:block">
     <div class="flex h-full flex-col">
         <div class="border-b border-slate-200 p-4">
@@ -5,39 +25,18 @@
             <p class="text-xs text-slate-500">Multi-Entity Billing Platform</p>
         </div>
 
-        <div class="border-b border-slate-200 p-4">
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Active Entity</p>
-            <p class="text-sm font-semibold text-slate-800">{{ $activeEntity?->name ?? 'No entity selected' }}</p>
-
-            @php($assignableEntities = auth()->user()?->isSuperAdmin() ? \App\Models\Entity::query()->where('is_active', true)->orderBy('name')->get() : auth()->user()?->entities()->where('is_active', true)->orderBy('name')->get())
-            @if($assignableEntities && $assignableEntities->isNotEmpty())
-                <form method="POST" action="{{ route('entities.switch', ['entity' => $activeEntity?->id ?? $assignableEntities->first()->id]) }}" class="mt-3">
-                    @csrf
-                    <select onchange="this.form.action='{{ url('/entity/switch') }}/'+this.value; this.form.submit();" class="w-full rounded-md border-slate-300 text-sm focus:border-slate-500 focus:ring-slate-500">
-                        @foreach($assignableEntities as $entity)
-                            <option value="{{ $entity->id }}" @selected(($activeEntity?->id ?? session('active_entity_id')) === $entity->id)>{{ $entity->name }}</option>
-                        @endforeach
-                    </select>
-                </form>
-            @endif
-        </div>
-
         <div class="flex-1 overflow-y-auto p-2 text-sm">
-            <a href="{{ route('dashboard') }}" class="block rounded-md px-3 py-2 {{ request()->routeIs('dashboard') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Dashboard</a>
-            <a href="{{ route('entities.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('entities.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Entities</a>
-            <a href="{{ route('users.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('users.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Users</a>
-            <a href="{{ route('customers.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('customers.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Customers</a>
-            <a href="{{ route('items.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('items.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Items</a>
-            <a href="{{ route('taxes.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('taxes.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Taxes</a>
-            <a href="{{ route('payment-methods.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('payment-methods.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Payment Methods</a>
-            <a href="{{ route('invoices.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('invoices.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Invoices</a>
-            <a href="{{ route('payments.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('payments.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Payments</a>
-            <a href="{{ route('credit-notes.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('credit-notes.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Credit Notes</a>
-            <a href="{{ route('recurring-templates.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('recurring-templates.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Recurring</a>
-            <a href="{{ route('reports.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('reports.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Reports</a>
-            <a href="{{ route('notification-logs.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('notification-logs.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Notifications</a>
-            <a href="{{ route('audit-logs.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('audit-logs.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Audit Logs</a>
-            <a href="{{ route('settings.index') }}" class="mt-1 block rounded-md px-3 py-2 {{ request()->routeIs('settings.*') ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">Settings</a>
+            @foreach($navItems as $item)
+                @php
+                    $routePattern = $item['route'];
+                    $targetRoute = $item['indexRoute'] ?? $item['route'];
+                    $active = request()->routeIs($routePattern);
+                @endphp
+                <a href="{{ route($targetRoute) }}" class="mt-1 flex items-center gap-2 rounded-md px-3 py-2 {{ $active ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">
+                    <i class="{{ $item['icon'] }} text-base"></i>
+                    <span>{{ $item['label'] }}</span>
+                </a>
+            @endforeach
         </div>
 
         <div class="border-t border-slate-200 p-4 text-sm">
@@ -45,26 +44,41 @@
             <p class="text-xs text-slate-500">{{ Auth::user()->email }}</p>
 
             <div class="mt-3 flex gap-2">
-                <a href="{{ route('profile.edit') }}" class="rounded-md bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">Profile</a>
+                <a href="{{ route('profile.edit') }}" class="inline-flex items-center gap-1 rounded-md bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">
+                    <i class="ph ph-user-circle text-sm"></i>
+                    Profile
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white">Logout</button>
+                    <button class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white">
+                        <i class="ph ph-sign-out text-sm"></i>
+                        Logout
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 </nav>
 
-<nav class="sticky top-0 z-30 border-b border-slate-200 bg-white lg:hidden">
+<nav x-data="{ open: false }" class="sticky top-0 z-40 border-b border-slate-200 bg-white lg:hidden">
     <div class="flex items-center justify-between px-4 py-3">
         <a href="{{ route('dashboard') }}" class="text-base font-bold text-slate-900">Kasira</a>
-        <button @click="open = ! open" class="rounded-md border border-slate-300 px-2 py-1 text-xs">Menu</button>
+        <button @click="open = !open" class="inline-flex items-center gap-1 rounded-md border border-slate-300 px-2 py-1 text-xs">
+            <i class="ph ph-list text-sm"></i>
+            Menu
+        </button>
     </div>
 
-    <div x-show="open" class="space-y-1 border-t border-slate-200 px-4 py-3">
-        <a href="{{ route('dashboard') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">Dashboard</a>
-        <a href="{{ route('invoices.index') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">Invoices</a>
-        <a href="{{ route('payments.index') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">Payments</a>
-        <a href="{{ route('reports.index') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">Reports</a>
+    <div x-show="open" x-cloak class="space-y-1 border-t border-slate-200 px-4 py-3">
+        @foreach($navItems as $item)
+            @php
+                $routePattern = $item['route'];
+                $targetRoute = $item['indexRoute'] ?? $item['route'];
+            @endphp
+            <a href="{{ route($targetRoute) }}" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm {{ request()->routeIs($routePattern) ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100' }}">
+                <i class="{{ $item['icon'] }} text-base"></i>
+                <span>{{ $item['label'] }}</span>
+            </a>
+        @endforeach
     </div>
 </nav>
