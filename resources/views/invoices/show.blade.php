@@ -23,24 +23,30 @@
                     <a href="{{ route('invoices.pdf', $invoice) }}" class="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow">
                         <i class="ph ph-download-simple text-sm"></i> PDF
                     </a>
+                    @if($invoice->status === 'draft')
                     <form method="POST" action="{{ route('invoices.send', $invoice) }}" class="m-0">
                         @csrf
                         <x-ui.button type="submit" class="h-9 rounded-xl px-3.5 text-xs font-bold shadow-sm">
                             <i class="ph ph-paper-plane-tilt mr-1.5 text-sm"></i> Send
                         </x-ui.button>
                     </form>
+                    @endif
+                    @can('create', \App\Models\Invoice::class)
                     <form method="POST" action="{{ route('invoices.duplicate', $invoice) }}" class="m-0">
                         @csrf
                         <x-ui.button type="submit" variant="secondary" class="h-9 rounded-xl px-3.5 text-xs font-bold shadow-sm">
                             <i class="ph ph-copy mr-1.5 text-sm"></i> Duplicate
                         </x-ui.button>
                     </form>
+                    @endcan
+                    @if(!in_array($invoice->status, ['paid', 'void', 'cancelled']))
                     <form method="POST" action="{{ route('invoices.void', $invoice) }}" class="m-0">
                         @csrf
                         <x-ui.button type="submit" variant="danger" class="h-9 rounded-xl px-3.5 text-xs font-bold shadow-sm">
                             Void
                         </x-ui.button>
                     </form>
+                    @endif
                 </div>
             </div>
 

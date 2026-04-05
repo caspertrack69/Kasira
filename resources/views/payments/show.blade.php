@@ -26,12 +26,19 @@
                                 <i class="ph ph-download-simple text-sm"></i> Proof
                             </a>
                         @endif
+                        @if($payment->status === 'pending')
                         <form method="POST" action="{{ route('payments.confirm', $payment) }}" class="m-0">
                             @csrf
                             <x-ui.button type="submit" class="h-9 rounded-xl px-4 text-xs font-bold shadow-sm">
                                 Confirm Payment
                             </x-ui.button>
                         </form>
+                        @else
+                        <span class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-emerald-50 px-4 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                            <i class="ph ph-check-circle text-sm"></i>
+                            Payment Confirmed
+                        </span>
+                        @endif
                     </div>
                 </div>
 

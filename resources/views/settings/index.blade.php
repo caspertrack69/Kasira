@@ -31,13 +31,13 @@
                 <div>
                     <h3 class="text-base font-bold tracking-tight text-slate-900">Gateway Secrets</h3>
                     <p class="mt-1.5 max-w-2xl text-sm font-medium text-slate-500">
-                        Payment gateway and mail secrets stay in <code class="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700">.env</code> as required by the PRD. The status cards below report whether each required environment variable exists.
+                        Status konfigurasi environment untuk gateway pembayaran dan mail.
                     </p>
                 </div>
             </div>
 
             <p class="mt-4 text-xs font-medium text-slate-400">
-                Protected keys must remain environment-backed. The table and cards below only show env presence, never the actual secret.
+                Nilai rahasia tidak ditampilkan di halaman ini.
             </p>
 
             <div class="mt-4 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -100,7 +100,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-bold text-amber-900">Action required</p>
-                            <p class="text-xs font-medium text-amber-700">Define these environment variables in <code class="rounded bg-amber-100 px-1 py-0.5">.env</code> so gateway integrations can initialize safely.</p>
+                            <p class="text-xs font-medium text-amber-700">Lengkapi variable berikut di <code class="rounded bg-amber-100 px-1 py-0.5">.env</code>.</p>
                         </div>
                     </div>
                     <ul class="mt-5 space-y-2.5">
@@ -122,7 +122,7 @@
                     </div>
                     <div>
                         <p class="text-sm font-bold text-emerald-900">All critical gateway secrets are configured.</p>
-                        <p class="text-xs font-medium text-emerald-700">Keep these variables protected inside <code class="rounded bg-emerald-100 px-1 py-0.5">.env</code>.</p>
+                        <p class="text-xs font-medium text-emerald-700">Semua variable yang dibutuhkan sudah tersedia.</p>
                     </div>
                 </div>
             @endif
@@ -136,7 +136,7 @@
                 <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-6">
                     <div>
                         <h3 class="text-base font-bold tracking-tight text-slate-900">Application Settings</h3>
-                        <p class="mt-1 text-xs font-medium text-slate-500">Use this table for non-sensitive settings only. Protected keys are rejected and must remain environment-backed.</p>
+                        <p class="mt-1 text-xs font-medium text-slate-500">Pengaturan aplikasi non-rahasia.</p>
                     </div>
                     <x-ui.button type="button" variant="secondary" @click="addRow()" class="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm">
                         <i class="ph ph-plus mr-1.5"></i> Add Row
@@ -202,4 +202,5 @@
         </script>
     @endonce
 </x-app-layout>
+
 

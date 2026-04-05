@@ -63,8 +63,13 @@ class InvoiceController extends Controller
         $entity = $context->entity();
         abort_if(! $entity, 422, 'No active entity selected.');
 
+        $entityModel = Entity::query()->findOrFail($entity->getKey());
+
         $validated = $request->validate([
-            'customer_id' => ['required', 'exists:customers,id'],
+            'customer_id' => [
+                'required',
+                \Illuminate\Validation\Rule::exists('customers', 'id')->where('entity_id', $entityModel->getKey()),
+            ],
             'invoice_date' => ['required', 'date'],
             'due_date' => ['nullable', 'date'],
             'currency' => ['nullable', 'string', 'size:3'],
@@ -76,11 +81,13 @@ class InvoiceController extends Controller
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'items.*.discount_type' => ['nullable', 'in:percentage,fixed'],
             'items.*.discount_value' => ['nullable', 'numeric', 'min:0'],
-            'items.*.tax_id' => ['nullable', 'exists:taxes,id'],
+            'items.*.tax_id' => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('taxes', 'id')->where('entity_id', $entityModel->getKey()),
+            ],
         ]);
 
         $totals = $this->calculationService->calculate($validated['items']);
-        $entityModel = Entity::query()->findOrFail($entity->getKey());
 
         DB::transaction(function () use ($validated, $entityModel, $totals): void {
             $invoiceDate = new \DateTimeImmutable((string) $validated['invoice_date']);
@@ -151,6 +158,10 @@ class InvoiceController extends Controller
         $copy->public_token = (string) Str::ulid().Str::random(10);
         $copy->amount_paid = '0.00';
         $copy->amount_due = $copy->grand_total;
+        $copy->sent_at = null;
+        $copy->paid_at = null;
+        $copy->cancelled_at = null;
+        $copy->pdf_path = null;
         $copy->created_by = request()->user()->getKey();
         $copy->save();
 
@@ -170,6 +181,16 @@ class InvoiceController extends Controller
                 'sort_order',
             ]));
         }
+
+        InvoiceStatusHistory::query()->create([
+            'entity_id' => $copy->entity_id,
+            'invoice_id' => $copy->getKey(),
+            'to_status' => InvoiceStatus::Draft->value,
+            'changed_by' => request()->user()->getKey(),
+            'notes' => 'Invoice duplicated from '.$invoice->invoice_number,
+        ]);
+
+        GenerateInvoicePdfJob::dispatch($copy->getKey());
 
         return redirect()->route('invoices.show', $copy)->with('status', 'Invoice duplicated as draft.');
     }

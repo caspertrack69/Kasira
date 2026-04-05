@@ -119,10 +119,11 @@ class RecurringInvoiceService
                     : 'Invoice generated as draft from recurring template',
             ]);
 
+            $newOccurrencesCount = $template->occurrences_count + 1;
             $template->update([
-                'occurrences_count' => $template->occurrences_count + 1,
+                'occurrences_count' => $newOccurrencesCount,
                 'next_generate_date' => $this->nextDate($template),
-                'is_active' => $this->shouldRemainActive($template),
+                'is_active' => $this->shouldRemainActive($template, $newOccurrencesCount),
             ]);
 
             $invoiceId = $invoice->getKey();
@@ -151,12 +152,12 @@ class RecurringInvoiceService
         };
     }
 
-    private function shouldRemainActive(RecurringTemplate $template): bool
+    private function shouldRemainActive(RecurringTemplate $template, int $newCount): bool
     {
         if ($template->occurrences_limit === null) {
             return true;
         }
 
-        return ($template->occurrences_count + 1) < $template->occurrences_limit;
+        return $newCount < $template->occurrences_limit;
     }
 }

@@ -37,9 +37,17 @@ class RecurringTemplateController extends Controller
             'template_data' => ['required', 'json'],
         ]);
 
+        $templateData = json_decode($validated['template_data'], true, flags: JSON_THROW_ON_ERROR);
+
+        if (empty($templateData['items']) || ! is_array($templateData['items'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'template_data' => 'Template data must contain a non-empty "items" array.',
+            ]);
+        }
+
         RecurringTemplate::query()->create([
             ...$validated,
-            'template_data' => json_decode($validated['template_data'], true, flags: JSON_THROW_ON_ERROR),
+            'template_data' => $templateData,
             'auto_send' => (bool) ($validated['auto_send'] ?? false),
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'created_by' => $request->user()->getKey(),
@@ -62,7 +70,11 @@ class RecurringTemplateController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $recurringTemplate->update($validated);
+        $recurringTemplate->update([
+            ...$validated,
+            'auto_send' => (bool) ($validated['auto_send'] ?? false),
+            'is_active' => (bool) ($validated['is_active'] ?? $recurringTemplate->is_active),
+        ]);
 
         return back()->with('status', 'Recurring template updated.');
     }

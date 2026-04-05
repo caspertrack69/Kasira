@@ -46,6 +46,7 @@ class CustomerController extends Controller
         $this->authorize('update', $customer);
 
         $validated = $request->validate([
+            'customer_number' => ['nullable', 'string', 'max:40'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
