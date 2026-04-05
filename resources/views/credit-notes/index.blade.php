@@ -24,20 +24,27 @@
                             <th class="px-3 py-2 text-left">Reason</th>
                             <th class="px-3 py-2 text-left">Status</th>
                             <th class="px-3 py-2 text-right">Amount</th>
+                            <th class="px-3 py-2 text-right">Document</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($creditNotes as $creditNote)
                             <tr>
-                                <td class="px-3 py-2">{{ $creditNote->credit_note_number }}</td>
+                                <td class="px-3 py-2">
+                                    <p class="font-medium">{{ $creditNote->credit_note_number }}</p>
+                                    <p class="text-xs text-slate-500">{{ $creditNote->customer?->name ?? '-' }}</p>
+                                </td>
                                 <td class="px-3 py-2">{{ $creditNote->invoice?->invoice_number ?? '-' }}</td>
                                 <td class="px-3 py-2">{{ $creditNote->reason }}</td>
                                 <td class="px-3 py-2"><x-ui.badge :status="$creditNote->status">{{ $creditNote->status }}</x-ui.badge></td>
                                 <td class="px-3 py-2 text-right">{{ number_format((float) $creditNote->amount, 2) }}</td>
+                                <td class="px-3 py-2 text-right">
+                                    <a href="{{ route('credit-notes.pdf', $creditNote) }}" class="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-900">Download PDF</a>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-3 py-6 text-center text-slate-500">No credit notes issued yet.</td>
+                                <td colspan="6" class="px-3 py-6 text-center text-slate-500">No credit notes issued yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

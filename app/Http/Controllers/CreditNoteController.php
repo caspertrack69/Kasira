@@ -4,20 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\CreditNote;
 use App\Models\Invoice;
+use App\Services\Billing\CreditNoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CreditNoteController extends Controller
 {
+    public function __construct(
+        private readonly CreditNoteService $creditNoteService,
+    ) {
+    }
+
     public function index(): View
     {
         $this->authorize('viewAny', CreditNote::class);
 
         return view('credit-notes.index', [
-            'creditNotes' => CreditNote::query()->with('invoice')->latest()->paginate(20),
-            'invoices' => Invoice::query()->whereIn('status', ['partial', 'paid'])->latest('invoice_date')->get(),
+            'creditNotes' => CreditNote::query()->with(['invoice', 'customer'])->latest()->paginate(20),
+            'invoices' => Invoice::query()->with('customer')->whereIn('status', ['partial', 'paid'])->latest('invoice_date')->get(),
         ]);
     }
 
@@ -32,19 +37,13 @@ class CreditNoteController extends Controller
         ]);
 
         $invoice = Invoice::query()->findOrFail($validated['invoice_id']);
-        $prefix = strtoupper(substr($invoice->entity->invoice_prefix ?? 'ENT', 0, 6));
+        $this->creditNoteService->issue(
+            $invoice,
+            (string) $validated['amount'],
+            $validated['reason'],
+            $request->user()->getKey(),
+        );
 
-        CreditNote::query()->create([
-            'entity_id' => $invoice->entity_id,
-            'invoice_id' => $invoice->getKey(),
-            'customer_id' => $invoice->customer_id,
-            'credit_note_number' => 'CN-'.$prefix.'-'.now()->format('Y').'-'.Str::padLeft((string) random_int(1, 9999), 4, '0'),
-            'amount' => $validated['amount'],
-            'reason' => $validated['reason'],
-            'status' => 'issued',
-            'created_by' => $request->user()->getKey(),
-        ]);
-
-        return back()->with('status', 'Credit note issued.');
+        return back()->with('status', 'Credit note issued and applied.');
     }
 }

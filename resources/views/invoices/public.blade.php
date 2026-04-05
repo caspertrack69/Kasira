@@ -7,8 +7,16 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-slate-100 text-slate-900">
+        @php($isPayable = in_array($invoice->status, ['sent', 'partial', 'overdue'], true) && (float) $invoice->amount_due > 0)
+
         <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                @if(session('status'))
+                    <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
                 <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-6">
                     <div>
                         <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ $invoice->entity->name ?? config('app.name') }}</p>
@@ -40,6 +48,56 @@
                         </dl>
                     </div>
                 </div>
+
+                @if($isPayable)
+                    <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Online Payment</p>
+                                <h2 class="mt-1 text-lg font-semibold text-slate-900">QRIS Checkout</h2>
+                                <p class="mt-1 text-sm text-slate-600">Start a payment request for the current outstanding balance and refresh the status until the invoice is settled.</p>
+                            </div>
+                            @if($paymentData)
+                                <x-ui.badge :status="$paymentData['status']">{{ $paymentData['status'] }}</x-ui.badge>
+                            @endif
+                        </div>
+
+                        @if($paymentData && $paymentData['qr_string'])
+                            <div class="mt-4 grid gap-6 lg:grid-cols-[240px,1fr] lg:items-start">
+                                <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                                    {!! QrCode::size(220)->margin(1)->generate($paymentData['qr_string']) !!}
+                                </div>
+                                <div class="space-y-3 text-sm text-slate-700">
+                                    <p id="payment-status-text">Status: {{ $paymentData['status'] }} @if($paymentData['gateway_status']) / {{ $paymentData['gateway_status'] }} @endif</p>
+                                    <p>Reference: <span class="font-mono text-xs">{{ $paymentData['reference'] }}</span></p>
+                                    <p>Gateway: {{ strtoupper($paymentData['gateway']) }}</p>
+                                    @if($paymentData['expires_at'])
+                                        <p>Expires At: {{ \Illuminate\Support\Carbon::parse($paymentData['expires_at'])->format('Y-m-d H:i') }}</p>
+                                    @endif
+                                    <div class="flex flex-wrap gap-3">
+                                        @if($paymentData['qr_url'])
+                                            <a href="{{ $paymentData['qr_url'] }}" target="_blank" class="rounded-md bg-slate-100 px-4 py-2 font-medium text-slate-900">Open Provider QR</a>
+                                        @endif
+                                        <button id="refresh-payment-status" type="button" class="rounded-md bg-slate-900 px-4 py-2 font-medium text-white">Refresh Status</button>
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($paymentData && $paymentData['checkout_url'])
+                            <div class="mt-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                                <p class="text-sm text-slate-700">This gateway returns a hosted checkout page for the payment. Open it and complete the QRIS flow there.</p>
+                                <div class="mt-3 flex flex-wrap gap-3">
+                                    <a href="{{ $paymentData['checkout_url'] }}" target="_blank" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white">Open Checkout</a>
+                                    <button id="refresh-payment-status" type="button" class="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900">Refresh Status</button>
+                                </div>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('invoices.public.payments.store', ['token' => $invoice->public_token]) }}" class="mt-4">
+                                @csrf
+                                <button class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white">Generate QRIS Payment</button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
 
                 <div class="mt-6 overflow-hidden rounded-xl border border-slate-200">
                     <x-ui.table>
@@ -89,5 +147,45 @@
                 </div>
             </div>
         </div>
+
+        @if($paymentData && $paymentData['status'] === 'pending')
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const statusUrl = @json(route('invoices.public.payments.status', ['token' => $invoice->public_token]));
+                    const refreshButton = document.getElementById('refresh-payment-status');
+                    const statusText = document.getElementById('payment-status-text');
+
+                    const syncStatus = async () => {
+                        try {
+                            const response = await fetch(statusUrl, {
+                                headers: {
+                                    'Accept': 'application/json',
+                                },
+                            });
+
+                            if (!response.ok) {
+                                return;
+                            }
+
+                            const payload = await response.json();
+                            const payment = payload.data.payment;
+
+                            if (payment && statusText) {
+                                statusText.textContent = `Status: ${payment.status}${payment.gateway_status ? ' / ' + payment.gateway_status : ''}`;
+                            }
+
+                            if (payload.data.invoice_status === 'paid' || (payment && payment.status !== 'pending')) {
+                                window.location.reload();
+                            }
+                        } catch (error) {
+                            console.debug('Payment status sync failed', error);
+                        }
+                    };
+
+                    refreshButton?.addEventListener('click', syncStatus);
+                    window.setInterval(syncStatus, 15000);
+                });
+            </script>
+        @endif
     </body>
 </html>

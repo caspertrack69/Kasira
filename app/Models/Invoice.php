@@ -88,4 +88,9 @@ class Invoice extends Model
     {
         return $this->belongsTo(RecurringTemplate::class);
     }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
 }

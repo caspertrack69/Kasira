@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CreditNoteController;
+use App\Http\Controllers\CreditNotePdfController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EntityController;
@@ -16,6 +17,8 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicInvoiceController;
+use App\Http\Controllers\PublicInvoicePaymentController;
+use App\Http\Controllers\PublicInvoicePaymentStatusController;
 use App\Http\Controllers\PublicInvoicePdfController;
 use App\Http\Controllers\RecurringTemplateController;
 use App\Http\Controllers\ReportController;
@@ -30,6 +33,8 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome');
 
 Route::get('/invoice/{token}', [PublicInvoiceController::class, 'show'])->name('invoices.public.show');
+Route::post('/invoice/{token}/payments/qris', [PublicInvoicePaymentController::class, 'store'])->name('invoices.public.payments.store');
+Route::get('/invoice/{token}/payments/status', PublicInvoicePaymentStatusController::class)->name('invoices.public.payments.status');
 Route::get('/invoice/{token}/download', PublicInvoicePdfController::class)->name('invoices.public.download');
 Route::post('/webhooks/midtrans', MidtransWebhookController::class)->name('webhooks.midtrans');
 Route::post('/webhooks/xendit', XenditWebhookController::class)->name('webhooks.xendit');
@@ -74,6 +79,7 @@ Route::middleware(['auth'])->group(function (): void {
 
         Route::get('credit-notes', [CreditNoteController::class, 'index'])->name('credit-notes.index');
         Route::post('credit-notes', [CreditNoteController::class, 'store'])->name('credit-notes.store');
+        Route::get('credit-notes/{creditNote}/pdf', CreditNotePdfController::class)->name('credit-notes.pdf');
 
         Route::get('recurring-templates', [RecurringTemplateController::class, 'index'])->name('recurring-templates.index');
         Route::post('recurring-templates', [RecurringTemplateController::class, 'store'])->name('recurring-templates.store');
