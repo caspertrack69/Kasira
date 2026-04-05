@@ -18,6 +18,16 @@
                         {{ session('status') }}
                     </div>
                 @endif
+                @if($errors->any())
+                    <div class="mb-8 rounded-xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800 shadow-sm">
+                        <p class="font-semibold">Please check your submission:</p>
+                        <ul class="mt-2 list-disc pl-5">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <div class="flex flex-wrap items-start justify-between gap-6 border-b border-slate-100 pb-8">
                     <div>
@@ -52,58 +62,124 @@
                 </div>
 
                 @if($isPayable)
-                    <div class="mt-8 rounded-3xl border border-indigo-100 bg-indigo-50/50 p-6 shadow-sm sm:p-8">
-                        <div class="flex flex-wrap items-start justify-between gap-4">
-                            <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-500">Online Payment</p>
-                                <h2 class="mt-1 text-xl font-bold tracking-tight text-slate-900">QRIS Checkout</h2>
-                                <p class="mt-2 max-w-xl text-sm font-medium text-slate-600">Start a payment request for the current outstanding balance and refresh the status until the invoice is settled.</p>
+                    <div class="mt-8 grid gap-6 xl:grid-cols-2">
+                        <div class="rounded-3xl border border-indigo-100 bg-indigo-50/50 p-6 shadow-sm sm:p-8">
+                            <div class="flex flex-wrap items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-500">Online Payment</p>
+                                    <h2 class="mt-1 text-xl font-bold tracking-tight text-slate-900">QRIS Checkout</h2>
+                                    <p class="mt-2 max-w-xl text-sm font-medium text-slate-600">Start a payment request for the current outstanding balance and refresh the status until the invoice is settled.</p>
+                                </div>
+                                @if($paymentData)
+                                    <x-ui.badge :status="$paymentData['status']" class="rounded-lg px-3 py-1.5 text-xs font-bold">{{ $paymentData['status'] }}</x-ui.badge>
+                                @endif
                             </div>
-                            @if($paymentData)
-                                <x-ui.badge :status="$paymentData['status']" class="rounded-lg px-3 py-1.5 text-xs font-bold">{{ $paymentData['status'] }}</x-ui.badge>
+
+                            @if($paymentData && $paymentData['qr_string'])
+                                <div class="mt-6 grid gap-8 lg:grid-cols-[240px,1fr] lg:items-start">
+                                    <div class="overflow-hidden rounded-2xl bg-white p-4 shadow-md shadow-slate-200/50 ring-1 ring-slate-200/60">
+                                        {!! QrCode::size(208)->margin(1)->generate($paymentData['qr_string']) !!}
+                                    </div>
+                                    <div class="space-y-4 text-sm font-medium text-slate-700">
+                                        <div class="rounded-xl border border-white/40 bg-white/60 p-4 backdrop-blur-sm">
+                                            <p id="payment-status-text" class="text-base font-bold text-slate-900">Status: {{ $paymentData['status'] }} @if($paymentData['gateway_status']) <span class="text-slate-400">/</span> {{ $paymentData['gateway_status'] }} @endif</p>
+                                            <div class="mt-3 space-y-1.5">
+                                                <p class="flex items-center gap-2"><span class="text-slate-500">Reference:</span> <span class="font-mono text-xs font-semibold">{{ $paymentData['reference'] }}</span></p>
+                                                <p class="flex items-center gap-2"><span class="text-slate-500">Gateway:</span> <span class="font-bold">{{ strtoupper($paymentData['gateway']) }}</span></p>
+                                                @if($paymentData['expires_at'])
+                                                    <p class="flex items-center gap-2"><span class="text-slate-500">Expires At:</span> <span class="font-bold">{{ \Illuminate\Support\Carbon::parse($paymentData['expires_at'])->format('d M Y, H:i') }}</span></p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-wrap gap-3">
+                                            @if($paymentData['qr_url'])
+                                                <a href="{{ $paymentData['qr_url'] }}" target="_blank" class="inline-flex h-10 items-center rounded-xl bg-white px-5 font-bold text-slate-900 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow">Open Provider QR</a>
+                                            @endif
+                                            <button id="refresh-payment-status" type="button" class="inline-flex h-10 items-center rounded-xl bg-slate-900 px-5 font-bold text-white shadow-sm transition hover:bg-slate-800 hover:shadow">Refresh Status</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif($paymentData && $paymentData['checkout_url'])
+                                <div class="mt-6 rounded-2xl border border-white/40 bg-white/60 p-5 shadow-sm backdrop-blur-sm">
+                                    <p class="text-sm font-medium text-slate-700">This gateway returns a hosted checkout page for the payment. Open it and complete the QRIS flow there.</p>
+                                    <div class="mt-4 flex flex-wrap gap-3">
+                                        <a href="{{ $paymentData['checkout_url'] }}" target="_blank" class="inline-flex h-10 items-center rounded-xl bg-slate-900 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">Open Checkout</a>
+                                        <button id="refresh-payment-status" type="button" class="inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">Refresh Status</button>
+                                    </div>
+                                </div>
+                            @else
+                                <form method="POST" action="{{ route('invoices.public.payments.store', ['token' => $invoice->public_token]) }}" class="mt-6">
+                                    @csrf
+                                    <button class="inline-flex h-11 items-center rounded-xl bg-slate-900 px-6 font-bold text-white shadow-sm transition hover:bg-slate-800 hover:shadow-md">
+                                        Generate QRIS Payment
+                                    </button>
+                                </form>
                             @endif
                         </div>
 
-                        @if($paymentData && $paymentData['qr_string'])
-                            <div class="mt-6 grid gap-8 lg:grid-cols-[240px,1fr] lg:items-start">
-                                <div class="overflow-hidden rounded-2xl bg-white p-4 shadow-md shadow-slate-200/50 ring-1 ring-slate-200/60">
-                                    {!! QrCode::size(208)->margin(1)->generate($paymentData['qr_string']) !!}
-                                </div>
-                                <div class="space-y-4 text-sm font-medium text-slate-700">
-                                    <div class="rounded-xl border border-white/40 bg-white/60 p-4 backdrop-blur-sm">
-                                        <p id="payment-status-text" class="text-base font-bold text-slate-900">Status: {{ $paymentData['status'] }} @if($paymentData['gateway_status']) <span class="text-slate-400">/</span> {{ $paymentData['gateway_status'] }} @endif</p>
-                                        <div class="mt-3 space-y-1.5">
-                                            <p class="flex items-center gap-2"><span class="text-slate-500">Reference:</span> <span class="font-mono text-xs font-semibold">{{ $paymentData['reference'] }}</span></p>
-                                            <p class="flex items-center gap-2"><span class="text-slate-500">Gateway:</span> <span class="font-bold">{{ strtoupper($paymentData['gateway']) }}</span></p>
-                                            @if($paymentData['expires_at'])
-                                                <p class="flex items-center gap-2"><span class="text-slate-500">Expires At:</span> <span class="font-bold">{{ \Illuminate\Support\Carbon::parse($paymentData['expires_at'])->format('d M Y, H:i') }}</span></p>
-                                            @endif
+                        <div class="rounded-3xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm sm:p-8">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Manual Payment</p>
+                            <h2 class="mt-1 text-xl font-bold tracking-tight text-slate-900">Bank Transfer</h2>
+                            <p class="mt-2 text-sm font-medium text-slate-600">Choose a bank account below, transfer the amount, then upload your transfer proof for verification.</p>
+
+                            @if($bankTransferMethods->isNotEmpty())
+                                <form method="POST" action="{{ route('invoices.public.payments.bank-transfer.store', ['token' => $invoice->public_token]) }}" enctype="multipart/form-data" class="mt-5 space-y-4">
+                                    @csrf
+                                    <div class="space-y-2">
+                                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Select Destination Account</p>
+                                        @foreach($bankTransferMethods as $method)
+                                            <label class="block cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300">
+                                                <div class="flex items-start gap-3">
+                                                    <input type="radio" name="payment_method_id" value="{{ $method->id }}" class="mt-1 h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-500" @checked(old('payment_method_id', $loop->first ? $method->id : null) === $method->id)>
+                                                    <div>
+                                                        <p class="text-sm font-bold text-slate-900">{{ $method->name }}</p>
+                                                        <p class="mt-1 text-xs font-medium text-slate-600">A/N: {{ $method->account_name ?: '-' }} | No. Rek: {{ $method->account_number ?: '-' }}</p>
+                                                        @if($method->instructions)
+                                                            <p class="mt-2 text-xs leading-relaxed text-slate-500">{{ $method->instructions }}</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="grid gap-4 md:grid-cols-2">
+                                        <div>
+                                            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Transfer Amount</label>
+                                            <input type="number" step="0.01" min="0.01" name="amount" value="{{ old('amount', number_format((float) $invoice->amount_due, 2, '.', '')) }}" class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                        </div>
+                                        <div>
+                                            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Transfer Date</label>
+                                            <input type="date" name="payment_date" value="{{ old('payment_date', now()->toDateString()) }}" class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                                         </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-3">
-                                        @if($paymentData['qr_url'])
-                                            <a href="{{ $paymentData['qr_url'] }}" target="_blank" class="inline-flex h-10 items-center rounded-xl bg-white px-5 font-bold text-slate-900 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:shadow">Open Provider QR</a>
-                                        @endif
-                                        <button id="refresh-payment-status" type="button" class="inline-flex h-10 items-center rounded-xl bg-slate-900 px-5 font-bold text-white shadow-sm transition hover:bg-slate-800 hover:shadow">Refresh Status</button>
+
+                                    <div class="grid gap-4 md:grid-cols-2">
+                                        <div>
+                                            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Reference (optional)</label>
+                                            <input type="text" name="reference" value="{{ old('reference') }}" class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                        </div>
+                                        <div>
+                                            <label class="mb-1.5 block text-sm font-semibold text-slate-700">Upload Proof</label>
+                                            <input type="file" name="proof" accept=".jpg,.jpeg,.png,.pdf" class="block w-full text-sm text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700 ring-1 ring-slate-200">
+                                        </div>
                                     </div>
+
+                                    <div>
+                                        <label class="mb-1.5 block text-sm font-semibold text-slate-700">Notes (optional)</label>
+                                        <textarea name="notes" rows="3" class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">{{ old('notes') }}</textarea>
+                                    </div>
+
+                                    <button class="inline-flex h-11 items-center rounded-xl bg-emerald-600 px-6 font-bold text-white shadow-sm transition hover:bg-emerald-700 hover:shadow-md">
+                                        Submit Transfer Proof
+                                    </button>
+                                </form>
+                            @else
+                                <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+                                    Bank transfer is not available yet for this invoice.
                                 </div>
-                            </div>
-                        @elseif($paymentData && $paymentData['checkout_url'])
-                            <div class="mt-6 rounded-2xl border border-white/40 bg-white/60 p-5 shadow-sm backdrop-blur-sm">
-                                <p class="text-sm font-medium text-slate-700">This gateway returns a hosted checkout page for the payment. Open it and complete the QRIS flow there.</p>
-                                <div class="mt-4 flex flex-wrap gap-3">
-                                    <a href="{{ $paymentData['checkout_url'] }}" target="_blank" class="inline-flex h-10 items-center rounded-xl bg-slate-900 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">Open Checkout</a>
-                                    <button id="refresh-payment-status" type="button" class="inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">Refresh Status</button>
-                                </div>
-                            </div>
-                        @else
-                            <form method="POST" action="{{ route('invoices.public.payments.store', ['token' => $invoice->public_token]) }}" class="mt-6">
-                                @csrf
-                                <button class="inline-flex h-11 items-center rounded-xl bg-slate-900 px-6 font-bold text-white shadow-sm transition hover:bg-slate-800 hover:shadow-md">
-                                    Generate QRIS Payment
-                                </button>
-                            </form>
-                        @endif
+                            @endif
+                        </div>
                     </div>
                 @endif
 
