@@ -1,11 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200/60">
-                <i class="ph ph-bell text-xl text-slate-600"></i>
-            </div>
-            <h2 class="text-xl font-bold tracking-tight text-slate-900">Notification Logs</h2>
-        </div>
+        <h2 class="text-xl font-bold tracking-tight text-slate-900">Notification Logs</h2>
     </x-slot>
 
     <x-ui.card class="overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-0 shadow-sm">
@@ -75,3 +70,4 @@
         @endif
     </x-ui.card>
 </x-app-layout>
+

@@ -1,60 +1,37 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200/60">
-                <i class="ph ph-user-list text-xl text-slate-600"></i>
-            </div>
-            <h2 class="text-xl font-bold tracking-tight text-slate-900">Customers</h2>
-        </div>
+        <h2 class="text-xl font-bold tracking-tight text-slate-900">Customers</h2>
     </x-slot>
 
-    <div x-data="{ createOpen: {{ $errors->any() ? 'true' : 'false' }} }" class="grid items-start gap-6 lg:grid-cols-3">
-        <div class="space-y-4 lg:col-span-1">
-            <x-ui.card class="rounded-2xl border border-slate-200/60 p-5 shadow-sm transition hover:shadow-md">
-                <button type="button" @click="createOpen = !createOpen" class="group flex w-full items-center justify-between text-left">
-                    <div>
-                        <h3 class="text-sm font-semibold tracking-tight text-slate-900">Customer Actions</h3>
-                        <p class="mt-0.5 text-[11px] font-medium text-slate-500">Tambah customer baru</p>
-                    </div>
-                    <span class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 text-xs font-semibold text-white shadow-sm shadow-slate-900/20 transition-all hover:bg-slate-800">
-                        <i class="ph ph-plus transition-transform duration-200" :class="createOpen ? 'rotate-45' : ''"></i>
-                        Tambah
-                    </span>
+    <div x-data="{ createOpen: {{ $errors->any() ? 'true' : 'false' }} }" class="space-y-6">
+        <x-ui.card class="overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-0 shadow-sm">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 p-6">
+                <div>
+                    <h3 class="text-base font-bold tracking-tight text-slate-900">Customer Directory</h3>
+                    <p class="mt-0.5 text-xs font-medium text-slate-500">Kelola data customer dalam satu panel.</p>
+                </div>
+                <button type="button" @click="createOpen = !createOpen" class="inline-flex h-9 items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 text-xs font-semibold text-white shadow-sm shadow-slate-900/20 transition hover:bg-slate-800">
+                    <i class="ph ph-plus transition-transform duration-200" :class="createOpen ? 'rotate-45' : ''"></i>
+                    Tambah Customer
                 </button>
-            </x-ui.card>
+            </div>
 
-            <div x-show="createOpen" x-cloak 
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
-                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                 x-transition:leave-end="opacity-0 -translate-y-4 scale-95">
-                 
-                <x-ui.card class="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xl shadow-slate-200/40">
-                    <h3 class="mb-5 text-sm font-bold tracking-tight text-slate-900">Create Customer</h3>
-                    <form method="POST" action="{{ route('customers.store') }}" class="space-y-4">
-                        @csrf
-                        <div class="space-y-4">
-                            <x-ui.input name="customer_number" label="Customer Number" />
-                            <x-ui.input name="name" label="Name" />
-                            <x-ui.input name="email" label="Email" type="email" />
-                            <x-ui.input name="phone" label="Phone" />
+            <div x-show="createOpen" x-cloak class="border-b border-slate-100 bg-slate-50/50 p-6">
+                <form method="POST" action="{{ route('customers.store') }}" class="space-y-4">
+                    @csrf
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-ui.input name="customer_number" label="Customer Number" />
+                        <x-ui.input name="name" label="Name" />
+                        <x-ui.input name="email" label="Email" type="email" />
+                        <x-ui.input name="phone" label="Phone" />
+                        <div class="md:col-span-2">
                             <x-ui.textarea name="billing_address" label="Billing Address" rows="3" />
                         </div>
-                        <div class="pt-2">
-                            <x-ui.button type="submit" class="w-full justify-center rounded-xl py-2.5">Save Customer</x-ui.button>
-                        </div>
-                    </form>
-                </x-ui.card>
+                    </div>
+                    <x-ui.button type="submit" class="rounded-xl px-5 py-2.5">Save Customer</x-ui.button>
+                </form>
             </div>
-        </div>
 
-        <x-ui.card class="overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-0 shadow-sm lg:col-span-2">
-            <div class="border-b border-slate-100 p-6">
-                <h3 class="text-base font-bold tracking-tight text-slate-900">Customer Directory</h3>
-            </div>
-            
             <div class="overflow-x-auto">
                 <x-ui.table class="w-full text-sm">
                     <thead class="border-b border-slate-100 bg-slate-50/50">
@@ -78,12 +55,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <p class="font-medium text-slate-700">{{ $customer->email ?? '-' }}</p>
-                                </td>
-                                <td class="px-6 py-4 text-right font-bold text-slate-900">
-                                    {{ number_format($customer->credit_balance, 2) }}
-                                </td>
+                                <td class="px-6 py-4"><p class="font-medium text-slate-700">{{ $customer->email ?? '-' }}</p></td>
+                                <td class="px-6 py-4 text-right font-bold text-slate-900">{{ number_format($customer->credit_balance, 2) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -100,10 +73,10 @@
             </div>
 
             @if($customers->hasPages())
-                <div class="border-t border-slate-100 bg-slate-50/30 px-6 py-4">
-                    {{ $customers->links() }}
-                </div>
+                <div class="border-t border-slate-100 bg-slate-50/30 px-6 py-4">{{ $customers->links() }}</div>
             @endif
         </x-ui.card>
     </div>
 </x-app-layout>
+
+
