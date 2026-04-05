@@ -34,6 +34,7 @@ Route::view('/', 'welcome');
 
 Route::get('/invoice/{token}', [PublicInvoiceController::class, 'show'])->name('invoices.public.show');
 Route::post('/invoice/{token}/payments/qris', [PublicInvoicePaymentController::class, 'store'])->name('invoices.public.payments.store');
+Route::post('/invoice/{token}/payments/bank-transfer', [PublicInvoicePaymentController::class, 'storeBankTransfer'])->name('invoices.public.payments.bank-transfer.store');
 Route::get('/invoice/{token}/payments/status', PublicInvoicePaymentStatusController::class)->name('invoices.public.payments.status');
 Route::get('/invoice/{token}/download', PublicInvoicePdfController::class)->name('invoices.public.download');
 Route::post('/webhooks/midtrans', MidtransWebhookController::class)->name('webhooks.midtrans');
