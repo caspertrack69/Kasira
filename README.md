@@ -62,6 +62,10 @@ Demo accounts:
 - `branch.finance@kasira.test` / `password`
 - `group.cfo@kasira.test` / `password`
 
+## Preview
+
+Store interface screenshots in the [`preview/`](preview) directory and link to them here so anyone running the app locally can compare the live UI to the expected look. Add a simple `README` or `.md` inside `preview/` that lists the screen names and corresponding files (for example, `dashboard.png`), then insert Markdown image links under this heading once the files exist.
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
