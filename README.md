@@ -64,7 +64,15 @@ Demo accounts:
 
 ## Preview
 
-Store interface screenshots in the [`preview/`](preview) directory and link to them here so anyone running the app locally can compare the live UI to the expected look. Add a simple `README` or `.md` inside `preview/` that lists the screen names and corresponding files (for example, `dashboard.png`), then insert Markdown image links under this heading once the files exist.
+Snapshots of the current interface live in [`preview/`](preview). Each image is linked below so the repository README shows the UI directly:
+
+- **Dashboard** – ![Preview1](preview/preview1.png)
+- **Invoice List** – ![Preview2](preview/preview2.png)
+- **Invoice Detail** – ![Preview3](preview/preview3.png)
+- **Public Invoice** – ![Preview4](preview/preview4.png)
+- **Payment Entry** – ![Preview5](preview/preview5.png)
+
+Keep `preview/README.md` up to date with any new screenshots to help contributors understand what each file represents.
 
 ## Contributing
 

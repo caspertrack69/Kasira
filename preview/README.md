@@ -1,7 +1,9 @@
-Add annotated screenshots of Kasira here. Name each file after the screen it represents (e.g., `dashboard.png`, `invoice-public.png`) and describe it in this file so contributors know which images to review. Once you copy screenshots into this folder, link them from the project `README.md` under the **Preview** section using the standard Markdown image syntax.
+Screenshot inventory:
 
-When adding a new screenshot:
+- `preview1.png`: dashboard overview after login.
+- `preview2.png`: invoice listing and quick actions.
+- `preview3.png`: detailed invoice view from the admin area.
+- `preview4.png`: public invoice page (customer-facing).
+- `preview5.png`: manual payment entry form.
 
-1. Drop the image into this folder (PNG is preferred for clarity).
-2. Update this README with a short line like `- Dashboard: dashboard.png`.
-3. Insert an image link in the main `README.md` such as `![Dashboard](preview/dashboard.png)` so the screenshot is visible directly in the docs.
+Drop additional PNGs here, add a line to this file describing them, and update the root README if you want to expose them in the **Preview** section.
