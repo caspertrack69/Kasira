@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             EntitySeeder::class,
             DemoUserSeeder::class,
+            InvoiceSeeder::class,
         ]);
     }
 }

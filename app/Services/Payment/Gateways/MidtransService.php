@@ -6,10 +6,10 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class MidtransService
 {
@@ -59,7 +59,12 @@ class MidtransService
             ],
         ];
 
-        $response = $this->request()->post('/v2/charge', $payload)->throw()->json();
+        try {
+            $response = $this->request()->post('/v2/charge', $payload)->throw()->json();
+        } catch (RequestException $exception) {
+            $message = (string) ($exception->response?->json('status_message') ?? $exception->getMessage());
+            throw new RuntimeException('Midtrans QRIS error: '.$message, 0, $exception);
+        }
 
         return $this->normalizeCreatePayload($reference, $response);
     }
@@ -71,7 +76,12 @@ class MidtransService
             return [];
         }
 
-        $response = $this->request()->get('/v2/'.$reference.'/status')->throw()->json();
+        try {
+            $response = $this->request()->get('/v2/'.$reference.'/status')->throw()->json();
+        } catch (RequestException $exception) {
+            $message = (string) ($exception->response?->json('status_message') ?? $exception->getMessage());
+            throw new RuntimeException('Midtrans status error: '.$message, 0, $exception);
+        }
 
         return $this->normalizeStatusPayload($reference, $response);
     }

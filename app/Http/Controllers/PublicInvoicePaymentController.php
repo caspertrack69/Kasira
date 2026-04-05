@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 use Throwable;
 
 class PublicInvoicePaymentController extends Controller
@@ -31,7 +32,13 @@ class PublicInvoicePaymentController extends Controller
             ->where('public_token', $token)
             ->firstOrFail();
 
-        $payment = $this->onlinePaymentService->startQrisPayment($invoice);
+        try {
+            $payment = $this->onlinePaymentService->startQrisPayment($invoice);
+        } catch (RuntimeException $exception) {
+            return redirect()
+                ->route('invoices.public.show', ['token' => $token])
+                ->withErrors(['payment' => $exception->getMessage()]);
+        }
         $paymentData = $this->onlinePaymentService->paymentData($payment);
 
         return redirect()

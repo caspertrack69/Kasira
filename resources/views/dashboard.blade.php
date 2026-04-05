@@ -89,50 +89,53 @@
         <a href="{{ route('payments.index') }}" class="text-sm font-medium text-slate-500 transition hover:text-slate-900">View all &rarr;</a>
     </div>
 
-    <x-ui.card class="mt-3 overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <x-ui.table class="w-full text-sm">
-                <!-- Clean Header -->
-                <thead class="border-b border-slate-100 bg-slate-50/50">
-                    <tr>
-                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Number</th>
-                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Date</th>
-                        <th class="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Amount</th>
-                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+    <div class="hidden overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm lg:block">
+        <x-ui.table class="w-full text-sm">
+            <thead class="border-b border-slate-100 bg-slate-50/50">
+                <tr>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Number</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Date</th>
+                    <th class="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Amount</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100/80 bg-white">
+                @forelse($recentPayments as $payment)
+                    <tr class="transition hover:bg-slate-50/50">
+                        <td class="whitespace-nowrap px-5 py-3.5 font-medium text-slate-900">{{ $payment->payment_number }}</td>
+                        <td class="whitespace-nowrap px-5 py-3.5 text-slate-500">{{ $payment->payment_date?->format('d M, Y') ?? '-' }}</td>
+                        <td class="whitespace-nowrap px-5 py-3.5 text-right font-bold text-slate-900">{{ number_format($payment->amount, 2) }}</td>
+                        <td class="whitespace-nowrap px-5 py-3.5">
+                            <x-ui.badge :status="$payment->status" class="rounded-lg px-2.5 py-1 text-[11px] font-bold">{{ $payment->status }}</x-ui.badge>
+                        </td>
                     </tr>
-                </thead>
-                <!-- Soft Divided Body -->
-                <tbody class="divide-y divide-slate-100/80 bg-white">
-                    @forelse($recentPayments as $payment)
-                        <tr class="transition-colors hover:bg-slate-50/50">
-                            <td class="whitespace-nowrap px-5 py-3 font-medium text-slate-900">
-                                {{ $payment->payment_number }}
-                            </td>
-                            <td class="whitespace-nowrap px-5 py-3 text-slate-500">
-                                {{ $payment->payment_date?->format('d M, Y') ?? '-' }}
-                            </td>
-                            <td class="whitespace-nowrap px-5 py-3 text-right font-medium text-slate-900">
-                                {{ number_format($payment->amount, 2) }}
-                            </td>
-                            <td class="whitespace-nowrap px-5 py-3">
-                                <!-- Asumsi: x-ui.badge sudah support styles, jika tidak Anda bisa styling via slot -->
-                                <x-ui.badge :status="$payment->status" class="rounded-lg px-2.5 py-1 text-[11px] font-semibold">
-                                    {{ $payment->status }}
-                                </x-ui.badge>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="px-5 py-8 text-center">
-                                <div class="flex flex-col items-center justify-center text-slate-400">
-                                    <i class="ph ph-folder-open text-3xl mb-2"></i>
-                                    <p class="text-sm">No payment data yet.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </x-ui.table>
-        </div>
-    </x-ui.card>
+                @empty
+                    <tr>
+                        <td colspan="4" class="px-6 py-10 text-center text-sm font-medium text-slate-500">No recent payments recorded.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </div>
+
+    <div class="space-y-3 lg:hidden">
+        @forelse($recentPayments as $payment)
+            <div class="rounded-2xl border border-slate-200/60 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-slate-900">{{ $payment->payment_number }}</p>
+                        <p class="text-xs font-medium text-slate-500">{{ $payment->payment_date?->format('d M, Y') ?? '-' }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-slate-900">{{ number_format($payment->amount, 2) }}</p>
+                        <x-ui.badge :status="$payment->status" class="mt-1 rounded-lg px-2 py-0.5 text-[10px] font-bold">{{ $payment->status }}</x-ui.badge>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-8 text-center text-sm font-medium text-slate-500">
+                No recent payments recorded.
+            </div>
+        @endforelse
+    </div>
 </x-app-layout>

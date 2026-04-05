@@ -71,32 +71,112 @@
     </div>
 </nav>
 
-<!-- Mobile Navigation Header -->
-<nav x-data="{ open: false }" class="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-md lg:hidden">
-    <div class="flex h-14 items-center justify-between px-4">
-        <a href="{{ route('dashboard') }}" class="text-lg font-bold tracking-tight text-slate-900">Kasira</a>
-        <button @click="open = !open" class="flex h-8 items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
-            <i class="ph" :class="open ? 'ph-x' : 'ph-list'"></i>
-        </button>
-    </div>
+<!-- Mobile Navigation Header (Consolidated) -->
+<nav class="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-slate-200/60 bg-white/80 px-4 backdrop-blur-md lg:hidden">
+    <a href="{{ route('dashboard') }}" class="text-lg font-bold tracking-tight text-slate-900 leading-none">Kasira</a>
+    
+    <div class="flex items-center gap-2">
+        @if(isset($assignableEntities) && $assignableEntities->isNotEmpty())
+            <div x-data="{ switcherOpen: false }" class="relative">
+                <button type="button" @click="switcherOpen = !switcherOpen" class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
+                    <i class="ph ph-buildings text-base"></i>
+                </button>
+                <div x-show="switcherOpen" x-cloak @click.outside="switcherOpen = false" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     class="absolute right-0 z-50 mt-2 w-64 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
+                    <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Switch Entity</div>
+                    <div class="mt-1 max-h-[50vh] space-y-0.5 overflow-y-auto">
+                        @foreach($assignableEntities as $entity)
+                            <form method="POST" action="{{ route('entities.switch', $entity) }}">
+                                @csrf
+                                @php
+                                    $isActive = ($activeEntity?->id ?? session('active_entity_id')) === $entity->id;
+                                @endphp
+                                <button type="submit" class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm {{ $isActive ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50' }}">
+                                    <span class="truncate">{{ $entity->name }}</span>
+                                    @if($isActive) <i class="ph ph-check-circle text-base"></i> @endif
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
 
-    <div x-show="open" x-cloak 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 -translate-y-2"
-         x-transition:enter-end="opacity-100 translate-y-0"
-         class="absolute inset-x-0 top-14 h-[calc(100vh-3.5rem)] overflow-y-auto border-t border-slate-100 bg-white px-4 py-4 pb-20 shadow-xl">
-        <div class="space-y-1">
+        <div class="h-4 w-px bg-slate-200 mx-1"></div>
+
+        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
+            {{ substr(Auth::user()->name, 0, 1) }}
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Bottom Navigation (PWA Style) -->
+<nav x-data="{ menuOpen: false }" class="fixed bottom-0 inset-x-0 z-50 lg:hidden">
+    <!-- Menu Drawer Overlay -->
+    <div x-show="menuOpen" x-cloak @click="menuOpen = false" x-transition:opacity class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    
+    <!-- Menu Drawer -->
+    <div x-show="menuOpen" x-cloak 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full"
+         x-transition:enter-end="translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0"
+         x-transition:leave-end="translate-y-full"
+         class="absolute bottom-0 inset-x-0 max-h-[80vh] overflow-y-auto rounded-t-[2.5rem] bg-white p-6 shadow-2xl ring-1 ring-slate-900/5 pb-24">
+        
+        <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-base font-bold text-slate-900">App Menu</h3>
+            <button @click="menuOpen = false" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-xl"></i></button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
             @foreach($navItems as $item)
                 @php
                     $routePattern = $item['route'];
                     $targetRoute = $item['indexRoute'] ?? $item['route'];
                     $active = request()->routeIs($routePattern);
                 @endphp
-                <a href="{{ route($targetRoute) }}" class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors {{ $active ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50' }}">
-                    <i class="{{ $item['icon'] }} text-lg {{ $active ? 'text-white' : 'text-slate-400' }}"></i>
-                    <span>{{ $item['label'] }}</span>
+                <a href="{{ route($targetRoute) }}" class="flex flex-col items-center gap-2 rounded-2xl border border-slate-100 p-4 transition-all {{ $active ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 hover:bg-slate-100' }}">
+                    <i class="{{ $item['icon'] }} text-xl"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-tight">{{ $item['label'] }}</span>
                 </a>
             @endforeach
         </div>
+
+        <div class="mt-6 space-y-2">
+            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-600">
+                <i class="ph ph-user-circle text-xl"></i> My Profile
+            </a>
+            <form method="POST" action="{{ route('logout') }}" class="block">
+                @csrf
+                <button class="flex w-full items-center gap-3 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-600">
+                    <i class="ph ph-sign-out text-xl"></i> Sign Out
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="flex h-20 items-center justify-around border-t border-slate-200/80 bg-white/90 px-4 pb-4 backdrop-blur-xl">
+        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 {{ request()->routeIs('dashboard') ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600' }}">
+            <i class="ph {{ request()->routeIs('dashboard') ? 'ph-gauge-fill' : 'ph-gauge' }} text-2xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-tight">Home</span>
+        </a>
+        <a href="{{ route('invoices.index') }}" class="flex flex-col items-center gap-1 {{ request()->routeIs('invoices.*') ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600' }}">
+            <i class="ph {{ request()->routeIs('invoices.*') ? 'ph-file-text-fill' : 'ph-file-text' }} text-2xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-tight">Invoices</span>
+        </a>
+        <a href="{{ route('customers.index') }}" class="flex flex-col items-center gap-1 {{ request()->routeIs('customers.*') ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600' }}">
+            <i class="ph {{ request()->routeIs('customers.*') ? 'ph-user-list-fill' : 'ph-user-list' }} text-2xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-tight">Clients</span>
+        </a>
+        <button @click="menuOpen = true" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
+            <i class="ph ph-squares-four text-2xl"></i>
+            <span class="text-[10px] font-bold uppercase tracking-tight">Menu</span>
+        </button>
     </div>
 </nav>
